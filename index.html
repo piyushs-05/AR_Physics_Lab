@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>AR Physics Lab</title>
+  <link rel="stylesheet" href="style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+        "mindar-image-three": "./vendor/mindar-image-three.prod.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- Landing / Splash Screen -->
+  <div id="splash">
+    <div class="splash-content">
+      <div class="splash-icon">
+        <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="40" cy="12" r="4" fill="#E8C872"/>
+          <line x1="40" y1="12" x2="40" y2="58" stroke="#E8C872" stroke-width="2" stroke-dasharray="4 3"/>
+          <circle cx="40" cy="62" r="10" fill="none" stroke="#E8C872" stroke-width="2.5"/>
+          <circle cx="40" cy="62" r="4" fill="#E8C872" opacity="0.5"/>
+          <path d="M20 68 Q40 80 60 68" stroke="#E8C872" stroke-width="1.5" fill="none" opacity="0.3"/>
+        </svg>
+      </div>
+      <h1>AR Physics Lab</h1>
+      <p class="subtitle">Interactive Physics Experiments</p>
+
+      <!-- Experiment Selector -->
+      <div class="experiment-selector" id="splash-exp-selector">
+        <button class="exp-tab active" data-exp="pendulum">Pendulum</button>
+        <button class="exp-tab" data-exp="ramp">Inclined Plane</button>
+      </div>
+
+      <p class="description" id="splash-description">
+        Experience real physics in augmented reality.
+        Point your camera at the target image to see the experiment come alive.
+      </p>
+      <div class="mode-buttons">
+        <button id="btn-ar" class="btn-primary">
+          <span class="btn-icon">📱</span>
+          Launch AR Mode
+        </button>
+        <button id="btn-3d" class="btn-secondary">
+          <span class="btn-icon">🖥️</span>
+          3D Viewer Mode
+        </button>
+      </div>
+      <p id="ar-status" class="status-msg"></p>
+      <p class="marker-hint">
+        <a href="./download (1).jpg"
+           target="_blank" rel="noopener">View the target image</a> to use AR mode
+      </p>
+    </div>
+  </div>
+
+  <!-- AR / 3D Canvas Container -->
+  <div id="canvas-container" style="display:none;">
+    <!-- Three.js renders here -->
+  </div>
+
+  <!-- AR Reticle Hint -->
+  <div id="placement-hint" style="display:none;">
+    <div class="hint-card">
+      <div class="hint-pulse"></div>
+      <p>Point your camera at the target image</p>
+    </div>
+  </div>
+
+  <!-- In-Mode Experiment Tabs -->
+  <div id="exp-tabs" style="display:none;">
+    <button class="exp-tab active" data-exp="pendulum">Pendulum</button>
+    <button class="exp-tab" data-exp="ramp">Inclined Plane</button>
+  </div>
+
+  <!-- Parameter Panel -->
+  <div id="param-panel" style="display:none;">
+    <div class="panel-header" id="panel-toggle">
+      <span class="panel-title">⚙ Parameters</span>
+      <span class="panel-chevron">▾</span>
+    </div>
+    <div class="panel-body" id="panel-body">
+      <!-- Pendulum Parameters -->
+      <div id="pendulum-params">
+        <div class="param-group">
+          <label>Gravity (m/s²)</label>
+          <input type="range" id="p-gravity" min="0.5" max="25" step="0.1" value="9.81" />
+          <span class="param-val" id="v-gravity">9.81</span>
+        </div>
+        <div class="param-group">
+          <label>String Length (m)</label>
+          <input type="range" id="p-length" min="0.2" max="3.0" step="0.05" value="1.0" />
+          <span class="param-val" id="v-length">1.00</span>
+        </div>
+        <div class="param-group">
+          <label>Bob Mass (kg)</label>
+          <input type="range" id="p-mass" min="0.1" max="10.0" step="0.1" value="1.0" />
+          <span class="param-val" id="v-mass">1.00</span>
+        </div>
+        <div class="param-group">
+          <label>Damping</label>
+          <input type="range" id="p-damping" min="0" max="0.5" step="0.005" value="0.02" />
+          <span class="param-val" id="v-damping">0.020</span>
+        </div>
+        <div class="param-group">
+          <label>Initial Angle (°)</label>
+          <input type="range" id="p-angle" min="5" max="170" step="1" value="45" />
+          <span class="param-val" id="v-angle">45</span>
+        </div>
+      </div>
+
+      <!-- Ramp Parameters -->
+      <div id="ramp-params" style="display:none;">
+        <div class="param-group">
+          <label>Gravity (m/s²)</label>
+          <input type="range" id="rp-gravity" min="0.5" max="25" step="0.1" value="9.81" />
+          <span class="param-val" id="rv-gravity">9.81</span>
+        </div>
+        <div class="param-group">
+          <label>Ramp Angle (°)</label>
+          <input type="range" id="rp-angle" min="5" max="80" step="1" value="30" />
+          <span class="param-val" id="rv-angle">30</span>
+        </div>
+        <div class="param-group">
+          <label>Ramp Length (m)</label>
+          <input type="range" id="rp-length" min="0.5" max="5.0" step="0.1" value="2.0" />
+          <span class="param-val" id="rv-length">2.00</span>
+        </div>
+        <div class="param-group">
+          <label>Ball Mass (kg)</label>
+          <input type="range" id="rp-mass" min="0.1" max="10.0" step="0.1" value="1.0" />
+          <span class="param-val" id="rv-mass">1.00</span>
+        </div>
+        <div class="param-group">
+          <label>Friction (μ)</label>
+          <input type="range" id="rp-friction" min="0" max="0.5" step="0.005" value="0.05" />
+          <span class="param-val" id="rv-friction">0.050</span>
+        </div>
+      </div>
+
+      <div class="param-actions">
+        <button id="btn-reset" class="btn-sm">↻ Reset</button>
+        <button id="btn-pause" class="btn-sm">⏸ Pause</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Documentation / Readout Panel -->
+  <div id="doc-panel" style="display:none;">
+    <div class="panel-header" id="doc-toggle">
+      <span class="panel-title">📐 Documentation</span>
+      <span class="panel-chevron">▾</span>
+    </div>
+    <div class="panel-body" id="doc-body">
+      <!-- Pendulum Documentation -->
+      <div id="pendulum-docs">
+        <div class="doc-section">
+          <h3>Governing Equation</h3>
+          <div class="equation">θ″ = −(g/L) sin(θ) − b·θ′</div>
+          <p class="eq-note">where g = gravity, L = length, b = damping coefficient</p>
+        </div>
+        <div class="doc-section">
+          <h3>Theoretical Period</h3>
+          <div class="equation" id="eq-period">T = 2π√(L/g) = — s</div>
+        </div>
+        <div class="doc-section">
+          <h3>Live Readouts</h3>
+          <div class="readout-grid">
+            <div class="readout">
+              <span class="readout-label">Angle</span>
+              <span class="readout-value" id="r-angle">0.0°</span>
+            </div>
+            <div class="readout">
+              <span class="readout-label">Angular Vel</span>
+              <span class="readout-value" id="r-angvel">0.0 rad/s</span>
+            </div>
+            <div class="readout">
+              <span class="readout-label">KE</span>
+              <span class="readout-value" id="r-ke">0.00 J</span>
+            </div>
+            <div class="readout">
+              <span class="readout-label">PE</span>
+              <span class="readout-value" id="r-pe">0.00 J</span>
+            </div>
+            <div class="readout">
+              <span class="readout-label">Total Energy</span>
+              <span class="readout-value" id="r-total">0.00 J</span>
+            </div>
+            <div class="readout">
+              <span class="readout-label">Observed Period</span>
+              <span class="readout-value" id="r-observed-period">— s</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ramp Documentation -->
+      <div id="ramp-docs" style="display:none;">
+        <div class="doc-section">
+          <h3>Governing Equation</h3>
+          <div class="equation">a = (5/7) g (sin α − μ cos α)</div>
+          <p class="eq-note">Rolling solid sphere on inclined plane with friction coefficient μ</p>
+        </div>
+        <div class="doc-section">
+          <h3>Theoretical Speed (no friction)</h3>
+          <div class="equation" id="eq-ramp-speed">v = √(10gh/7) = — m/s</div>
+        </div>
+        <div class="doc-section">
+          <h3>Live Readouts</h3>
+          <div class="readout-grid">
+            <div class="readout">
+              <span class="readout-label">Velocity</span>
+              <span class="readout-value" id="rr-velocity">0.00 m/s</span>
+            </div>
+            <div class="readout">
+              <span class="readout-label">Height</span>
+              <span class="readout-value" id="rr-height">0.00 m</span>
+            </div>
+            <div class="readout">
+              <span class="readout-label">KE</span>
+              <span class="readout-value" id="rr-ke">0.00 J</span>
+            </div>
+            <div class="readout">
+              <span class="readout-label">PE</span>
+              <span class="readout-value" id="rr-pe">0.00 J</span>
+            </div>
+            <div class="readout">
+              <span class="readout-label">Total Energy</span>
+              <span class="readout-value" id="rr-total">0.00 J</span>
+            </div>
+            <div class="readout">
+              <span class="readout-label">Max Velocity</span>
+              <span class="readout-value" id="rr-maxvel">0.00 m/s</span>
+            </div>
+            <div class="readout">
+              <span class="readout-label">Distance</span>
+              <span class="readout-value" id="rr-distance">0.00 m</span>
+            </div>
+            <div class="readout">
+              <span class="readout-label">Time</span>
+              <span class="readout-value" id="rr-time">0.00 s</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Back Button (in AR/3D mode) -->
+  <button id="btn-back" style="display:none;" class="btn-back">✕</button>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

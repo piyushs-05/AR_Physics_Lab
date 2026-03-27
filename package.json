@@ -1,0 +1,18 @@
+{
+  "name": "physicslab",
+  "version": "1.0.0",
+  "description": "A web-based augmented reality physics simulation that lets you place a simple pendulum on any real-world surface and interact with its parameters in real time.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "mind-ar": "^1.2.5",
+    "puppeteer-core": "^24.40.0",
+    "sharp": "^0.34.5"
+  }
+}

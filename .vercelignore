@@ -1,0 +1,8 @@
+node_modules
+compile-target.mjs
+package.json
+package-lock.json
+vendor/ar-threex.mjs
+vendor/camera_para.dat
+vendor/patt.hiro
+vendor/hiro-marker.jpg
