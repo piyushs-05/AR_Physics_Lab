@@ -1,106 +1,54 @@
-# AR Physics Lab — Simple Pendulum
+# AR Physics Lab
 
-A web-based augmented reality physics simulation that lets you place a simple pendulum on any real-world surface and interact with its parameters in real time.
+A high-fidelity, web-based Augmented Reality (AR) physics simulator for interactive education. Explore real physics by placing experiments on any surface in your environment or interact in a dedicated 3D viewer.
 
-## Demo Modes
+## 🚀 Experience Modes
 
-| Mode | How it works | Requirements |
+| Mode | How it Works | Requirements |
 |------|-------------|--------------|
-| **AR Mode** | Uses WebXR Hit Test API for markerless surface detection. Point your camera at a flat surface, tap to place the pendulum. | Chrome 79+ on Android, HTTPS |
-| **3D Viewer** | Interactive 3D view with orbit controls. Works everywhere. | Any modern browser |
+| **AR Mode** | Marker-less placement via WebXR Hit Test API or Image Tracking via MindAR. | Chrome 79+ on Android, HTTPS |
+| **3D Viewer** | Full interactive 3D scene with orbit controls. | Any modern web browser |
 
-## Quick Start
+## 🧪 Included Experiments
 
-1. **Serve over HTTPS** (required for WebXR/camera access):
+### 1. Simple Pendulum
+A non-linear pendulum simulation capable of modeling large angular displacements.
+- **Adjustable Parameters**: Gravity ($g$), String Length ($L$), Bob Mass ($m$), and Damping coefficient ($b$).
+- **Features**: Drag-to-set angle, flick-to-start (initial velocity), and real-time energy readouts (Kinetic, Potential, Total).
+- **Precision**: Uses **4th-order Runge-Kutta (RK4)** integration to ensure energy conservation.
+
+### 2. Inclined Plane (Ramp)
+A rolling solid sphere ($I = \frac{2}{5}mR^2$) on a customizable ramp.
+- **Adjustable Parameters**: Ramp Angle ($\alpha$), Ramp Length, Sphere Mass, and Surface Friction ($\mu$).
+- **Features**: Realistic transition from ramp to flat surface, velocity peak tracking, and height-based PE calculations.
+
+## 🛠 Project Architecture
+
+This project is built with a **modular ES6 architecture**, ensuring that physics logic is decoupled from rendering and UI.
+
+- **`index.html`**: The UI entry point and styling.
+- **`app.js`**: Core orchestrator for Three.js, AR/VR sessions, and user pointer-interactions.
+- **`physics.js` & `ramp-physics.js`**: Pure physics engines implementing numerical integration (RK4).
+- **`ui.js`**: Binds the parameter sliders and data readouts to the underlying physics state.
+- **`vendor/`**: Localized assets for AR tracking (MindAR targets, Hiro markers, and WebXR helpers).
+
+## 🧮 Theoretical Background
+
+The simulation solves the full equations of motion:
+- **Pendulum**: $\theta'' = -\frac{g}{L} \sin(\theta) - b \theta'$
+- **Ramp**: $a = \frac{5}{7} g (\sin \alpha - \mu \cos \alpha)$
+
+Numerical stability is maintained through **4 substeps per frame** using the RK4 method, providing far superior accuracy over standard Euler integration.
+
+## 📦 Getting Started
+
+1. **Serve the Project**: WebXR and Camera access requires a secure context (HTTPS) or `localhost`.
    ```bash
-   # Option A: Python
-   python3 -m http.server 8080
-   # Then use ngrok or similar for HTTPS
-
-   # Option B: VS Code Live Server extension
-
-   # Option C: Deploy to GitHub Pages / Netlify / Vercel
+   # Using Python
+   python3 -m http.server 8000
    ```
-2. Open `index.html` in the browser.
-3. Choose **AR Mode** (if supported) or **3D Viewer**.
-4. In AR mode, point at a flat surface and tap to place the pendulum.
-5. Use the **Parameters** panel to tweak the simulation in real time.
+2. **Access**: Open `index.html` in your browser.
+3. **Usage**: Choose an experiment, select AR or 3D mode, and use the **⚙ Parameters** panel to tweak the world mid-simulation.
 
-## Physics Model
-
-### Governing Equation
-
-The simulation solves the full nonlinear pendulum equation (not the small-angle approximation):
-
-```
-θ″ = −(g / L) · sin(θ) − b · θ′
-```
-
-Where:
-- `θ` — Angular displacement from vertical (radians)
-- `g` — Gravitational acceleration (m/s²)
-- `L` — String/rod length (m)
-- `b` — Damping coefficient (dimensionless)
-
-### Integration Method
-
-**4th-order Runge-Kutta (RK4)** with 4 sub-steps per frame for numerical stability. This preserves energy conservation far better than simple Euler integration.
-
-### Tunable Parameters
-
-| Parameter | Range | Default | Effect |
-|-----------|-------|---------|--------|
-| Gravity | 0.5 – 25 m/s² | 9.81 | Higher → faster swing. Try 1.62 for Moon, 3.72 for Mars |
-| String Length | 0.2 – 3.0 m | 1.0 | Longer → slower period (T ∝ √L) |
-| Bob Mass | 0.1 – 10.0 kg | 1.0 | Affects energy magnitude, not period (in ideal case) |
-| Damping | 0 – 0.5 | 0.02 | Energy dissipation rate. 0 = perpetual motion |
-| Initial Angle | 5° – 170° | 45° | Starting displacement. Large angles show nonlinear effects |
-
-### Live Readouts
-
-- **Angle** — Current θ in degrees
-- **Angular Velocity** — Current ω in rad/s
-- **Kinetic Energy** — KE = ½mv² where v = Lω
-- **Potential Energy** — PE = mgL(1 − cos θ)
-- **Total Energy** — KE + PE (should decrease with damping > 0)
-- **Theoretical Period** — T = 2π√(L/g) (small-angle approximation)
-- **Observed Period** — Measured from zero-crossings in the simulation
-
-## Architecture
-
-```
-index.html          ← Entry point, UI structure
-style.css           ← Dark scientific theme
-js/
-  app.js            ← Three.js scene, WebXR AR, 3D fallback, animation loop
-  physics.js        ← PendulumPhysics class (RK4 integrator, energy calculations)
-  ui.js             ← UIController (parameter binding, readout updates)
-```
-
-### Key Design Decisions
-
-1. **No build step** — Pure ES modules loaded via `importmap`. Zero dependencies to install.
-2. **WebXR Hit Test** — The most reliable markerless surface detection API available on the web. Falls back gracefully to 3D mode.
-3. **RK4 integration** — Chosen over Euler for energy preservation. The pendulum at damping=0 conserves energy within <0.1% over thousands of frames.
-4. **Separation of concerns** — Physics knows nothing about rendering; UI knows nothing about Three.js. Easy to swap in a different physics model.
-
-## Browser Compatibility
-
-| Feature | Chrome Android | Chrome Desktop | Safari iOS | Firefox |
-|---------|---------------|---------------|------------|---------|
-| 3D Viewer | ✅ | ✅ | ✅ | ✅ |
-| AR Mode | ✅ (79+) | ❌ | ❌ (no WebXR hit-test) | ❌ |
-
-## Extending
-
-**Add a new simulation** (e.g., spring-mass):
-1. Create `js/spring-physics.js` implementing the same interface (`step()`, `bobPosition`, energy getters)
-2. Create corresponding 3D visuals in `app.js`
-3. Update the parameter panel in `index.html`
-
-**Add marker-based AR**:
-- Swap WebXR for AR.js with a Hiro marker pattern. The physics and rendering code stays identical.
-
-## License
-
-MIT — use freely for education, research, or portfolio.
+## 📜 License
+MIT — Open for educational and research use.
