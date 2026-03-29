@@ -31,6 +31,12 @@ This project is built with a **modular ES6 architecture**, ensuring that physics
 - **`physics.js` & `ramp-physics.js`**: Pure physics engines implementing numerical integration (RK4).
 - **`ui.js`**: Binds the parameter sliders and data readouts to the underlying physics state.
 - **`vendor/`**: Localized assets for AR tracking (MindAR targets, Hiro markers, and WebXR helpers).
+## Output GIF
+### Pendulum
+![pendulam](https://github.com/user-attachments/assets/271e5139-fa5a-45c0-970e-d371dd475370)
+### Inlined Plane
+![ball](https://github.com/user-attachments/assets/676c5f09-6873-4913-9498-976fd022d941)
+
 
 ## 🧮 Theoretical Background
 
